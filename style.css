@@ -472,7 +472,7 @@ body.sidebar-collapsed .main-wrapper {
     display: none;
     flex-direction: column;
     gap: 24px;
-    animation: fadeInUp var(--trans-slow) forwards;
+    animation: fadeInUp var(--trans-slow);
 }
 
 .tool-panel.active {
@@ -486,7 +486,7 @@ body.sidebar-collapsed .main-wrapper {
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: none;
     }
 }
 
