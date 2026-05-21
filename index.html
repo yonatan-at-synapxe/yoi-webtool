@@ -134,10 +134,18 @@
                     </svg>
                     <span class="nav-label">Regex Sandbox</span>
                 </a>
+
+                <a class="nav-item" data-target="cron-builder" data-label="Cron Builder" title="Build cron schedules visually or explain an expression in plain English">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="nav-label">Cron Builder</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
-                <span style="font-size:0.75rem; color:var(--text-muted);">v1.0.0 (Offline)</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">v1.0.2 (Offline)</span>
                 <button class="theme-toggle-btn" id="theme-toggle" title="Switch Theme">
                     <!-- Theme switch icon will load in JS -->
                 </button>
@@ -251,6 +259,17 @@
                         </div>
                         <h3 class="dashboard-card-title">NRIC / FIN Generator</h3>
                         <p class="dashboard-card-desc">Generate valid Singapore NRIC or FIN numbers with the correct ISO check digit automatically.</p>
+                    </div>
+
+                    <div class="card dashboard-card" data-target="cron-builder">
+                        <div class="dashboard-card-icon" style="background-color: hsla(200, 80%, 55%, 0.15); color: hsl(200, 80%, 55%);">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <h3 class="dashboard-card-title">Cron Builder</h3>
+                        <p class="dashboard-card-desc">Build cron schedules visually with field-by-field controls, or paste an expression to read it in plain English with upcoming run times.</p>
                     </div>
 
                 </div>
@@ -929,6 +948,265 @@
 
             </div>
 
+            <!-- PANEL: Cron Builder / Explainer -->
+            <div class="tool-panel" id="cron-builder">
+
+                <!-- Mode Switcher -->
+                <div class="flex-row-center" style="gap: 8px; margin-bottom: 24px;">
+                    <button class="btn btn-primary active" id="cron-tab-build" style="min-width: 130px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;">
+                            <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        Visual Builder
+                    </button>
+                    <button class="btn btn-secondary" id="cron-tab-explain" style="min-width: 130px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        Explainer
+                    </button>
+                </div>
+
+                <!-- ══════════════════════════════════════════════════════════ -->
+                <!-- BUILDER SECTION                                           -->
+                <!-- ══════════════════════════════════════════════════════════ -->
+                <div id="cron-builder-section">
+
+                    <!-- Quick Presets -->
+                    <div class="card flex-col" style="margin-bottom: 20px;">
+                        <div class="card-title">Quick Presets</div>
+                        <div class="flex-row-center" style="gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary cron-preset-btn" data-preset="every-minute"  style="font-size:0.82rem; padding:5px 12px;">Every Minute</button>
+                            <button class="btn btn-secondary cron-preset-btn" data-preset="every-15min"   style="font-size:0.82rem; padding:5px 12px;">Every 15 Min</button>
+                            <button class="btn btn-secondary cron-preset-btn" data-preset="every-hour"    style="font-size:0.82rem; padding:5px 12px;">Every Hour</button>
+                            <button class="btn btn-secondary cron-preset-btn" data-preset="daily-midnight"style="font-size:0.82rem; padding:5px 12px;">Daily Midnight</button>
+                            <button class="btn btn-secondary cron-preset-btn" data-preset="daily-9am"     style="font-size:0.82rem; padding:5px 12px;">Daily 9 AM</button>
+                            <button class="btn btn-secondary cron-preset-btn" data-preset="weekdays-9am"  style="font-size:0.82rem; padding:5px 12px;">Weekdays 9 AM</button>
+                            <button class="btn btn-secondary cron-preset-btn" data-preset="weekly-sunday" style="font-size:0.82rem; padding:5px 12px;">Weekly Sunday</button>
+                            <button class="btn btn-secondary cron-preset-btn" data-preset="monthly-1st"   style="font-size:0.82rem; padding:5px 12px;">Monthly 1st</button>
+                        </div>
+                    </div>
+
+                    <!-- Field Selectors -->
+                    <div class="card flex-col" style="margin-bottom: 20px;">
+                        <div class="card-title">Schedule Fields</div>
+                        <div style="display:grid; gap:14px;">
+
+                            <!-- Minute -->
+                            <div class="cron-field-row flex-row-center" style="gap:12px; flex-wrap:wrap;">
+                                <span class="cron-field-label" style="width:110px; font-weight:600; color:var(--text-primary); flex-shrink:0;">Minute</span>
+                                <span style="color:var(--text-muted); font-size:0.78rem; width:60px; flex-shrink:0;">0 – 59</span>
+                                <select class="select-input" id="cron-min-type" style="min-width:130px;">
+                                    <option value="*">Every (*)</option>
+                                    <option value="specific">Specific</option>
+                                    <option value="range">Range</option>
+                                    <option value="step">Every Nth</option>
+                                </select>
+                                <div id="cron-min-wrap-specific" style="display:none; align-items:center; gap:6px;">
+                                    <input type="number" class="input-text" id="cron-min-specific" min="0" max="59" placeholder="0–59" style="width:90px;">
+                                </div>
+                                <div id="cron-min-wrap-range" style="display:none; align-items:center; gap:6px;">
+                                    <input type="number" class="input-text" id="cron-min-range-from" min="0" max="59" placeholder="From" style="width:80px;">
+                                    <span style="color:var(--text-muted);">–</span>
+                                    <input type="number" class="input-text" id="cron-min-range-to" min="0" max="59" placeholder="To" style="width:80px;">
+                                </div>
+                                <div id="cron-min-wrap-step" style="display:none; align-items:center; gap:6px;">
+                                    <span style="font-family:var(--font-mono); color:var(--text-muted);">*/</span>
+                                    <input type="number" class="input-text" id="cron-min-step" min="1" max="59" placeholder="Step" style="width:80px;">
+                                </div>
+                            </div>
+
+                            <!-- Hour -->
+                            <div class="cron-field-row flex-row-center" style="gap:12px; flex-wrap:wrap;">
+                                <span class="cron-field-label" style="width:110px; font-weight:600; color:var(--text-primary); flex-shrink:0;">Hour</span>
+                                <span style="color:var(--text-muted); font-size:0.78rem; width:60px; flex-shrink:0;">0 – 23</span>
+                                <select class="select-input" id="cron-hour-type" style="min-width:130px;">
+                                    <option value="*">Every (*)</option>
+                                    <option value="specific">Specific</option>
+                                    <option value="range">Range</option>
+                                    <option value="step">Every Nth</option>
+                                </select>
+                                <div id="cron-hour-wrap-specific" style="display:none; align-items:center; gap:6px;">
+                                    <input type="number" class="input-text" id="cron-hour-specific" min="0" max="23" placeholder="0–23" style="width:90px;">
+                                </div>
+                                <div id="cron-hour-wrap-range" style="display:none; align-items:center; gap:6px;">
+                                    <input type="number" class="input-text" id="cron-hour-range-from" min="0" max="23" placeholder="From" style="width:80px;">
+                                    <span style="color:var(--text-muted);">–</span>
+                                    <input type="number" class="input-text" id="cron-hour-range-to" min="0" max="23" placeholder="To" style="width:80px;">
+                                </div>
+                                <div id="cron-hour-wrap-step" style="display:none; align-items:center; gap:6px;">
+                                    <span style="font-family:var(--font-mono); color:var(--text-muted);">*/</span>
+                                    <input type="number" class="input-text" id="cron-hour-step" min="1" max="23" placeholder="Step" style="width:80px;">
+                                </div>
+                            </div>
+
+                            <!-- Day of Month -->
+                            <div class="cron-field-row flex-row-center" style="gap:12px; flex-wrap:wrap;">
+                                <span class="cron-field-label" style="width:110px; font-weight:600; color:var(--text-primary); flex-shrink:0;">Day of Month</span>
+                                <span style="color:var(--text-muted); font-size:0.78rem; width:60px; flex-shrink:0;">1 – 31</span>
+                                <select class="select-input" id="cron-dom-type" style="min-width:130px;">
+                                    <option value="*">Every (*)</option>
+                                    <option value="specific">Specific</option>
+                                    <option value="range">Range</option>
+                                    <option value="step">Every Nth</option>
+                                </select>
+                                <div id="cron-dom-wrap-specific" style="display:none; align-items:center; gap:6px;">
+                                    <input type="number" class="input-text" id="cron-dom-specific" min="1" max="31" placeholder="1–31" style="width:90px;">
+                                </div>
+                                <div id="cron-dom-wrap-range" style="display:none; align-items:center; gap:6px;">
+                                    <input type="number" class="input-text" id="cron-dom-range-from" min="1" max="31" placeholder="From" style="width:80px;">
+                                    <span style="color:var(--text-muted);">–</span>
+                                    <input type="number" class="input-text" id="cron-dom-range-to" min="1" max="31" placeholder="To" style="width:80px;">
+                                </div>
+                                <div id="cron-dom-wrap-step" style="display:none; align-items:center; gap:6px;">
+                                    <span style="font-family:var(--font-mono); color:var(--text-muted);">*/</span>
+                                    <input type="number" class="input-text" id="cron-dom-step" min="1" max="31" placeholder="Step" style="width:80px;">
+                                </div>
+                            </div>
+
+                            <!-- Month -->
+                            <div class="cron-field-row flex-row-center" style="gap:12px; flex-wrap:wrap;">
+                                <span class="cron-field-label" style="width:110px; font-weight:600; color:var(--text-primary); flex-shrink:0;">Month</span>
+                                <span style="color:var(--text-muted); font-size:0.78rem; width:60px; flex-shrink:0;">1 – 12</span>
+                                <select class="select-input" id="cron-month-type" style="min-width:130px;">
+                                    <option value="*">Every (*)</option>
+                                    <option value="specific">Specific</option>
+                                    <option value="range">Range</option>
+                                    <option value="step">Every Nth</option>
+                                </select>
+                                <div id="cron-month-wrap-specific" style="display:none; align-items:center; gap:6px;">
+                                    <input type="number" class="input-text" id="cron-month-specific" min="1" max="12" placeholder="1–12" style="width:90px;">
+                                </div>
+                                <div id="cron-month-wrap-range" style="display:none; align-items:center; gap:6px;">
+                                    <input type="number" class="input-text" id="cron-month-range-from" min="1" max="12" placeholder="From" style="width:80px;">
+                                    <span style="color:var(--text-muted);">–</span>
+                                    <input type="number" class="input-text" id="cron-month-range-to" min="1" max="12" placeholder="To" style="width:80px;">
+                                </div>
+                                <div id="cron-month-wrap-step" style="display:none; align-items:center; gap:6px;">
+                                    <span style="font-family:var(--font-mono); color:var(--text-muted);">*/</span>
+                                    <input type="number" class="input-text" id="cron-month-step" min="1" max="12" placeholder="Step" style="width:80px;">
+                                </div>
+                            </div>
+
+                            <!-- Day of Week -->
+                            <div class="cron-field-row flex-row-center" style="gap:12px; flex-wrap:wrap;">
+                                <span class="cron-field-label" style="width:110px; font-weight:600; color:var(--text-primary); flex-shrink:0;">Day of Week</span>
+                                <span style="color:var(--text-muted); font-size:0.78rem; width:60px; flex-shrink:0;">0=Sun 6=Sat</span>
+                                <select class="select-input" id="cron-dow-type" style="min-width:130px;">
+                                    <option value="*">Every (*)</option>
+                                    <option value="specific">Specific</option>
+                                    <option value="range">Range</option>
+                                    <option value="step">Every Nth</option>
+                                </select>
+                                <div id="cron-dow-wrap-specific" style="display:none; align-items:center; gap:6px;">
+                                    <select class="select-input" id="cron-dow-specific" style="min-width:130px;">
+                                        <option value="0">0 – Sunday</option>
+                                        <option value="1">1 – Monday</option>
+                                        <option value="2">2 – Tuesday</option>
+                                        <option value="3">3 – Wednesday</option>
+                                        <option value="4">4 – Thursday</option>
+                                        <option value="5">5 – Friday</option>
+                                        <option value="6">6 – Saturday</option>
+                                    </select>
+                                </div>
+                                <div id="cron-dow-wrap-range" style="display:none; align-items:center; gap:6px;">
+                                    <select class="select-input" id="cron-dow-range-from" style="min-width:130px;">
+                                        <option value="0">0 – Sunday</option>
+                                        <option value="1">1 – Monday</option>
+                                        <option value="2">2 – Tuesday</option>
+                                        <option value="3">3 – Wednesday</option>
+                                        <option value="4">4 – Thursday</option>
+                                        <option value="5">5 – Friday</option>
+                                        <option value="6">6 – Saturday</option>
+                                    </select>
+                                    <span style="color:var(--text-muted);">–</span>
+                                    <select class="select-input" id="cron-dow-range-to" style="min-width:130px;">
+                                        <option value="0">0 – Sunday</option>
+                                        <option value="1">1 – Monday</option>
+                                        <option value="2">2 – Tuesday</option>
+                                        <option value="3">3 – Wednesday</option>
+                                        <option value="4">4 – Thursday</option>
+                                        <option value="5">5 – Friday</option>
+                                        <option value="6" selected>6 – Saturday</option>
+                                    </select>
+                                </div>
+                                <div id="cron-dow-wrap-step" style="display:none; align-items:center; gap:6px;">
+                                    <span style="font-family:var(--font-mono); color:var(--text-muted);">*/</span>
+                                    <input type="number" class="input-text" id="cron-dow-step" min="1" max="6" placeholder="Step" style="width:80px;">
+                                </div>
+                            </div>
+
+                        </div><!-- /grid -->
+                    </div><!-- /card -->
+
+                    <!-- Output -->
+                    <div class="card flex-col">
+                        <div class="card-title">Cron Expression</div>
+                        <div class="flex-row-center" style="gap:10px; flex-wrap:wrap;">
+                            <input type="text" class="input-text" id="cron-output" readonly
+                                   style="font-family:var(--font-mono); font-size:1.15rem; letter-spacing:0.08em; flex:1; min-width:200px;"
+                                   aria-label="Generated cron expression">
+                            <button class="btn btn-secondary" id="btn-cron-copy">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                Copy
+                            </button>
+                            <button class="btn btn-secondary" id="btn-cron-build-clear">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                                </svg>
+                                Reset
+                            </button>
+                        </div>
+                        <div id="cron-build-summary" class="cron-summary-text" style="margin-top:10px; font-size:0.9rem; color:var(--text-secondary); min-height:1.4em;"></div>
+                    </div>
+
+                </div><!-- /#cron-builder-section -->
+
+                <!-- ══════════════════════════════════════════════════════════ -->
+                <!-- EXPLAINER SECTION (hidden by default)                    -->
+                <!-- ══════════════════════════════════════════════════════════ -->
+                <div id="cron-explain-section" style="display:none;">
+
+                    <!-- Input -->
+                    <div class="card flex-col" style="margin-bottom:20px;">
+                        <div class="card-title">Cron Expression</div>
+                        <div class="flex-row-center" style="gap:10px;">
+                            <input type="text" class="input-text" id="cron-explain-input"
+                                   placeholder="e.g.  0 9 * * 1-5"
+                                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                                   style="font-family:var(--font-mono); flex:1;">
+                            <button class="btn btn-secondary" id="btn-cron-explain-clear">Clear</button>
+                        </div>
+                        <div id="cron-explain-status" class="status-indicator error" style="display:none; margin-top:8px;"></div>
+                    </div>
+
+                    <!-- Plain English -->
+                    <div class="card flex-col" style="margin-bottom:20px;">
+                        <div class="card-title">Plain English</div>
+                        <div id="cron-explanation">
+                            <span style="color:var(--text-muted); font-size:0.875rem;">Enter a cron expression above to see the plain-English explanation.</span>
+                        </div>
+                    </div>
+
+                    <!-- Next Run Times -->
+                    <div class="card flex-col">
+                        <div class="card-title">Next 5 Run Times</div>
+                        <div id="cron-next-runs">
+                            <span style="color:var(--text-muted); font-size:0.875rem;">Next run times will appear here once you enter a valid expression.</span>
+                        </div>
+                    </div>
+
+                </div><!-- /#cron-explain-section -->
+
+            </div><!-- /#cron-builder -->
+
         </main>
     </div>
 
@@ -955,6 +1233,7 @@
     <script src="js/tools/client_assertion.js"></script>
     <script src="js/tools/nric.js"></script>
     <script src="js/tools/regex.js"></script>
+    <script src="js/tools/cron.js"></script>
     <script src="app.js"></script>
     <script src="js/controllers/json.js"></script>
     <script src="js/controllers/codec.js"></script>
@@ -965,5 +1244,6 @@
     <script src="js/controllers/client_assertion.js"></script>
     <script src="js/controllers/nric.js"></script>
     <script src="js/controllers/regex.js"></script>
+    <script src="js/controllers/cron.js"></script>
 </body>
 </html>

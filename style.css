@@ -1669,3 +1669,82 @@ details[open] .regex-cheat-chevron {
     }
 }
 
+/* ── Cron Builder / Explainer ─────────────────────────────────────────────── */
+
+.cron-summary-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.cron-sentence {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 16px;
+    line-height: 1.5;
+}
+
+.cron-parts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cron-part-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cron-part-raw {
+    font-family: var(--font-mono);
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    min-width: 36px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.cron-part-field {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 90px;
+    flex-shrink: 0;
+}
+
+.cron-part-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+.cron-runs-list {
+    margin: 0;
+    padding: 0 0 0 1.4em;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cron-run-item {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+.cron-run-item code {
+    font-family: var(--font-mono);
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    padding: 2px 8px;
+    border-radius: 5px;
+    color: var(--text-primary);
+    font-size: 0.86rem;
+}
+

@@ -12,6 +12,7 @@ A self-contained, offline-first developer and office utility suite with a stunni
 7. **NRIC / FIN Generator**: Compute valid Singapore NRIC and FIN check digits from a given prefix and 7-digit number sequence.
 8. **Client Assertion Generator**: Generate signed JWT client assertions for Microsoft Entra ID (Azure AD) using a private key and certificate thumbprint.
 9. **Regex Sandbox**: Test and explain regular expressions with instant match highlighting.
+10. **Cron Builder**: Build cron schedules visually with field-by-field controls and quick presets, or paste an expression to read it in plain English with upcoming run times.
 
 ---
 
