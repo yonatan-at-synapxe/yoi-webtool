@@ -60,14 +60,14 @@
                     <span class="nav-label">JSON Formatter</span>
                 </a>
                 
-                <a class="nav-item" data-target="base64-codec" data-label="Base64 / URL Codec" title="Encode or decode text in Base64 &amp; URL schemes">
+                <a class="nav-item" data-target="base64-codec" data-label="String Codec" title="Encode or decode text in Base64, URL schemes, and JSON escape formats">
                     <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="17 1 21 5 17 9"></polyline>
                         <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
                         <polyline points="7 23 3 19 7 15"></polyline>
                         <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
                     </svg>
-                    <span class="nav-label">Base64 / URL Codec</span>
+                    <span class="nav-label">String Codec</span>
                 </a>
                 
                 <a class="nav-item" data-target="markdown-editor" data-label="Markdown Live" title="Write markdown with real-time browser preview">
@@ -187,8 +187,8 @@
                         <div class="dashboard-card-icon" style="background-color: hsla(275, 85%, 65%, 0.15); color: hsl(275, 85%, 65%);">
                             <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                         </div>
-                        <h3 class="dashboard-card-title">Base64 / URL Codec</h3>
-                        <p class="dashboard-card-desc">Quickly encode or decode texts to/from Base64 or URL encoding formats.</p>
+                        <h3 class="dashboard-card-title">String Codec</h3>
+                        <p class="dashboard-card-desc">Quickly encode or decode texts to/from Base64, URL encoding, and JSON escape formats.</p>
                     </div>
                     
                     <div class="card dashboard-card" data-target="markdown-editor">
@@ -383,6 +383,8 @@
                         <button class="btn btn-secondary" id="btn-b64-decode">Base64 Decode</button>
                         <button class="btn btn-primary" id="btn-url-encode" style="background:linear-gradient(135deg, hsl(275, 84%, 60%), hsl(300, 84%, 58%))">URL Encode</button>
                         <button class="btn btn-secondary" id="btn-url-decode">URL Decode</button>
+                        <button class="btn btn-primary" id="btn-json-escape" style="background:linear-gradient(135deg, hsl(160, 84%, 40%), hsl(185, 84%, 38%))">JSON Escape</button>
+                        <button class="btn btn-secondary" id="btn-json-unescape">JSON Unescape</button>
                     </div>
                 </div>
             </div>
