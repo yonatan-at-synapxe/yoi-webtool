@@ -434,13 +434,23 @@
             <div class="tool-panel" id="text-diff">
                 <div class="grid-2col">
                     <div class="card flex-col">
-                        <div class="card-title">Original Text (Left)</div>
-                        <textarea class="textarea-field" id="diff-input-a" placeholder="Enter the original version of your text..."></textarea>
+                        <div class="card-title">
+                            <span>Original Text (Left)</span>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">Drop file here</span>
+                        </div>
+                        <div class="file-drag-zone" id="diff-drag-a">
+                            <textarea class="textarea-field" id="diff-input-a" style="margin: 0;" placeholder="Enter the original version of your text..."></textarea>
+                        </div>
                     </div>
 
                     <div class="card flex-col">
-                        <div class="card-title">Modified Text (Right)</div>
-                        <textarea class="textarea-field" id="diff-input-b" placeholder="Enter the modified version of your text..."></textarea>
+                        <div class="card-title">
+                            <span>Modified Text (Right)</span>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">Drop file here</span>
+                        </div>
+                        <div class="file-drag-zone" id="diff-drag-b">
+                            <textarea class="textarea-field" id="diff-input-b" style="margin: 0;" placeholder="Enter the modified version of your text..."></textarea>
+                        </div>
                     </div>
                 </div>
 

@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnClearDiff = document.getElementById('btn-clear-diff');
     const diffOutput = document.getElementById('diff-output');
 
+    const diffDragA = document.getElementById('diff-drag-a');
+    const diffDragB = document.getElementById('diff-drag-b');
+
     function runTextDiff() {
         const valA = diffInputA.value;
         const valB = diffInputB.value;
@@ -57,6 +60,50 @@ document.addEventListener('DOMContentLoaded', () => {
         diffOutput.innerHTML = html;
         if (window.App && window.App.showToast) window.App.showToast('Text comparison complete!');
     }
+
+    // ==========================================
+    // Drag and Drop File Loading
+    // ==========================================
+    function setupDragAndDrop(dropZone, textArea) {
+        if (!dropZone || !textArea) return;
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('drag-over');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    textArea.value = event.target.result;
+                    // Trigger input event to update previews/trigger listeners
+                    textArea.dispatchEvent(new Event('input'));
+                    if (window.App && window.App.showToast) {
+                        window.App.showToast(`Loaded file: ${file.name}`);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }, false);
+    }
+
+    setupDragAndDrop(diffDragA, diffInputA);
+    setupDragAndDrop(diffDragB, diffInputB);
 
     if (btnCompare) btnCompare.addEventListener('click', runTextDiff);
     if (btnClearDiff) btnClearDiff.addEventListener('click', () => {
