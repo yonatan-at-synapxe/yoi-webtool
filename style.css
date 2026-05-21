@@ -617,6 +617,14 @@ body.sidebar-collapsed .main-wrapper {
     user-select: none;
 }
 
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+    pointer-events: none;
+}
+
 .btn-primary {
     background: var(--accent-gradient);
     color: #fff;

@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnJsonEscape = document.getElementById('btn-json-escape');
     const btnJsonUnescape = document.getElementById('btn-json-unescape');
     const btnClearCodec = document.getElementById('btn-clear-codec');
+    const btnCodecFormatJson = document.getElementById('btn-codec-format-json');
 
     function runCodec(operation, method) {
         const input = codecInput.value;
@@ -30,8 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             codecOutput.value = output;
             if (window.App && window.App.showToast) window.App.showToast(`Successfully ${operation}d!`);
+
+            // Enable format button if Unescape JSON succeeded
+            if (btnCodecFormatJson) {
+                btnCodecFormatJson.disabled = (method !== 'json' || operation !== 'decode');
+            }
         } catch (e) {
             codecOutput.value = '';
+            if (btnCodecFormatJson) btnCodecFormatJson.disabled = true;
             if (window.App && window.App.showToast) window.App.showToast(e.message, 'error');
         }
     }
@@ -45,6 +52,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnClearCodec) btnClearCodec.addEventListener('click', () => {
         codecInput.value = '';
         codecOutput.value = '';
+        if (btnCodecFormatJson) btnCodecFormatJson.disabled = true;
         if (window.App && window.App.showToast) window.App.showToast('Codec workspace cleared.');
     });
+
+    if (codecInput) {
+        codecInput.addEventListener('input', () => {
+            if (btnCodecFormatJson) btnCodecFormatJson.disabled = true;
+        });
+    }
+
+    if (btnCodecFormatJson) {
+        btnCodecFormatJson.addEventListener('click', () => {
+            const jsonInput = document.getElementById('json-input');
+            if (jsonInput) {
+                jsonInput.value = codecOutput.value;
+                jsonInput.dispatchEvent(new Event('input'));
+            }
+            const btnJsonTabTree = document.getElementById('btn-json-tab-tree');
+            if (btnJsonTabTree) {
+                btnJsonTabTree.click();
+            }
+            if (window.App && window.App.navigateTo) {
+                window.App.navigateTo('json-formatter');
+            }
+        });
+    }
 });
