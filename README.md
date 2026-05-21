@@ -9,6 +9,9 @@ A self-contained, offline-first developer and office utility suite with a stunni
 4. **Text Comparator**: Compute differences line-by-line between two text inputs.
 5. **Password Generator**: Securely create random passwords using cryptographically secure random values and custom criteria.
 6. **JWT Decoder**: Decode JSON Web Tokens and inspect headers, payloads, signatures, and signature expiry status.
+7. **NRIC / FIN Generator**: Compute valid Singapore NRIC and FIN check digits from a given prefix and 7-digit number sequence.
+8. **Client Assertion Generator**: Generate signed JWT client assertions for Microsoft Entra ID (Azure AD) using a private key and certificate thumbprint.
+9. **Regex Sandbox**: Test and explain regular expressions with instant match highlighting.
 
 ---
 

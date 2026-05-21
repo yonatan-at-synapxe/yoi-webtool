@@ -126,6 +126,14 @@
                     </svg>
                     <span class="nav-label">NRIC / FIN Generator</span>
                 </a>
+
+                <a class="nav-item" data-target="regex-sandbox" data-label="Regex Sandbox" title="Test and explain regular expressions with instant match highlighting">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="4 17 10 11 4 5"></polyline>
+                        <line x1="12" y1="19" x2="20" y2="19"></line>
+                    </svg>
+                    <span class="nav-label">Regex Sandbox</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
@@ -219,6 +227,16 @@
                         </div>
                         <h3 class="dashboard-card-title">Client Assertion Gen</h3>
                         <p class="dashboard-card-desc">Generate Microsoft Entra ID (Azure AD) client assertions from certificates for OAuth2.</p>
+                    </div>
+
+                    <div class="card dashboard-card" data-target="regex-sandbox">
+                        <div class="dashboard-card-icon" style="background-color: hsla(320, 80%, 55%, 0.15); color: hsl(320, 80%, 55%);">                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="4 17 10 11 4 5"></polyline>
+                                <line x1="12" y1="19" x2="20" y2="19"></line>
+                            </svg>
+                        </div>
+                        <h3 class="dashboard-card-title">Regex Sandbox</h3>
+                        <p class="dashboard-card-desc">Test regular expressions with instant match highlighting and plain-English token explanations.</p>
                     </div>
 
                     <div class="card dashboard-card" data-target="nric-generator">
@@ -764,6 +782,153 @@
                 </div>
             </div>
 
+            <!-- PANEL: Regex Sandbox -->
+            <div class="tool-panel" id="regex-sandbox">
+
+                <!-- Pattern Input Card -->
+                <div class="card flex-col" style="margin-bottom: 24px;">
+                    <div class="card-title">Pattern</div>
+                    <div class="flex-row-center" style="gap: 10px; flex-wrap: wrap;">
+                        <span style="font-family: var(--font-mono); font-size: 1.3rem; color: var(--text-muted); line-height: 1;">/</span>
+                        <input type="text" class="input-text" id="regex-pattern"
+                               placeholder="e.g. \d{3}-\d{4}"
+                               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                               style="font-family: var(--font-mono); flex: 1; min-width: 180px;">
+                        <span style="font-family: var(--font-mono); font-size: 1.3rem; color: var(--text-muted); line-height: 1;">/</span>
+                        <label class="regex-flag-label" title="Global — find all matches">
+                            <input type="checkbox" id="regex-flag-g" checked>
+                            <span class="flag-key">g</span>
+                            <span class="flag-name">global</span>
+                        </label>
+                        <label class="regex-flag-label" title="Case insensitive">
+                            <input type="checkbox" id="regex-flag-i">
+                            <span class="flag-key">i</span>
+                            <span class="flag-name">ignore case</span>
+                        </label>
+                        <label class="regex-flag-label" title="Multiline — ^ and $ match line boundaries">
+                            <input type="checkbox" id="regex-flag-m">
+                            <span class="flag-key">m</span>
+                            <span class="flag-name">multiline</span>
+                        </label>
+                        <label class="regex-flag-label" title="Dot-all — . also matches newlines">
+                            <input type="checkbox" id="regex-flag-s">
+                            <span class="flag-key">s</span>
+                            <span class="flag-name">dot-all</span>
+                        </label>
+                    </div>
+                    <div id="regex-status" class="status-indicator error" style="display: none; margin-top: 4px;"></div>
+                </div>
+
+                <!-- Test String + Match Preview -->
+                <div class="grid-2col" style="margin-bottom: 24px;">
+                    <!-- Left: Test String -->
+                    <div class="card flex-col">
+                        <div class="card-title">Test String</div>
+                        <textarea class="textarea-field" id="regex-test-input"
+                                  placeholder="Paste or type text here to test your pattern…"
+                                  autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+                    </div>
+                    <!-- Right: Match Preview -->
+                    <div class="card flex-col">
+                        <div class="card-title">
+                            <span>Match Preview</span>
+                            <span id="regex-match-count" style="font-size: 0.82rem; font-weight: 500; color: var(--text-muted);"></span>
+                        </div>
+                        <div class="regex-highlight-box" id="regex-highlight-output" aria-label="Match preview with highlighted results"></div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Pattern Explainer -->
+                <div class="card flex-col" style="margin-bottom: 24px;">
+                    <div class="card-title">Pattern Explanation</div>
+                    <div id="regex-explain-output" class="regex-explain-container">
+                        <span style="color: var(--text-muted); font-size: 0.875rem;">Enter a pattern above to see a token-by-token explanation.</span>
+                    </div>
+                </div>
+
+                <!-- Cheat Sheet (collapsible) -->
+                <div class="card flex-col">
+                    <details>
+                        <summary class="regex-cheatsheet-summary" style="font-size: 1rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; outline: none;">
+                            <svg class="regex-cheat-chevron" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            Regex Cheat Sheet
+                            <span style="font-size: 0.78rem; font-weight: 400; color: var(--text-muted);">Quick reference</span>
+                        </summary>
+                        <div class="regex-cheatsheet-grid">
+                            <!-- Anchors & Boundaries -->
+                            <div class="regex-cheatsheet-section">
+                                <div class="regex-cheatsheet-title">Anchors &amp; Boundaries</div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">^</code><span class="regex-cheat-desc">Start of string / line</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">$</code><span class="regex-cheat-desc">End of string / line</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\b</code><span class="regex-cheat-desc">Word boundary</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\B</code><span class="regex-cheat-desc">Non-word boundary</span></div>
+                            </div>
+                            <!-- Character Classes -->
+                            <div class="regex-cheatsheet-section">
+                                <div class="regex-cheatsheet-title">Character Classes</div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">.</code><span class="regex-cheat-desc">Any char (except newline)</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\d</code><span class="regex-cheat-desc">Digit [0–9]</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\w</code><span class="regex-cheat-desc">Word char [a-zA-Z0-9_]</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\s</code><span class="regex-cheat-desc">Any whitespace</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\D \W \S</code><span class="regex-cheat-desc">Negated shortcuts</span></div>
+                            </div>
+                            <!-- Character Sets -->
+                            <div class="regex-cheatsheet-section">
+                                <div class="regex-cheatsheet-title">Character Sets</div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">[abc]</code><span class="regex-cheat-desc">Any of a, b, or c</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">[^abc]</code><span class="regex-cheat-desc">Not a, b, or c</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">[a-z]</code><span class="regex-cheat-desc">Any lowercase letter</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">[A-Z]</code><span class="regex-cheat-desc">Any uppercase letter</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">[0-9]</code><span class="regex-cheat-desc">Any digit</span></div>
+                            </div>
+                            <!-- Quantifiers -->
+                            <div class="regex-cheatsheet-section">
+                                <div class="regex-cheatsheet-title">Quantifiers</div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">*</code><span class="regex-cheat-desc">Zero or more (greedy)</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">+</code><span class="regex-cheat-desc">One or more (greedy)</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">?</code><span class="regex-cheat-desc">Zero or one (optional)</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">*? +? ??</code><span class="regex-cheat-desc">Lazy (non-greedy) variants</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">{n,m}</code><span class="regex-cheat-desc">Between n and m times</span></div>
+                            </div>
+                            <!-- Groups -->
+                            <div class="regex-cheatsheet-section">
+                                <div class="regex-cheatsheet-title">Groups</div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">(...)</code><span class="regex-cheat-desc">Capture group</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">(?:...)</code><span class="regex-cheat-desc">Non-capturing group</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">(?=...)</code><span class="regex-cheat-desc">Positive lookahead</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">(?!...)</code><span class="regex-cheat-desc">Negative lookahead</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">(?&lt;=...) (?&lt;!...)</code><span class="regex-cheat-desc">Lookbehind</span></div>
+                            </div>
+                            <!-- Misc & Escapes -->
+                            <div class="regex-cheatsheet-section">
+                                <div class="regex-cheatsheet-title">Misc &amp; Escapes</div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">|</code><span class="regex-cheat-desc">Alternation (OR)</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\n</code><span class="regex-cheat-desc">Newline character</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\t</code><span class="regex-cheat-desc">Tab character</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\1 \2</code><span class="regex-cheat-desc">Backreference to group</span></div>
+                                <div class="regex-cheat-pill"><code class="regex-cheat-code">\.</code><span class="regex-cheat-desc">Escaped literal dot</span></div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="flex-row-center" style="justify-content: flex-end; margin-top: 16px;">
+                    <button class="btn btn-secondary" id="btn-regex-clear">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                            <path d="M10 11v6"></path><path d="M14 11v6"></path>
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                        </svg>
+                        Clear
+                    </button>
+                </div>
+
+            </div>
+
         </main>
     </div>
 
@@ -789,6 +954,7 @@
     <script src="js/tools/jwt.js"></script>
     <script src="js/tools/client_assertion.js"></script>
     <script src="js/tools/nric.js"></script>
+    <script src="js/tools/regex.js"></script>
     <script src="app.js"></script>
     <script src="js/controllers/json.js"></script>
     <script src="js/controllers/codec.js"></script>
@@ -798,5 +964,6 @@
     <script src="js/controllers/jwt.js"></script>
     <script src="js/controllers/client_assertion.js"></script>
     <script src="js/controllers/nric.js"></script>
+    <script src="js/controllers/regex.js"></script>
 </body>
 </html>

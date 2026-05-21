@@ -1486,4 +1486,186 @@ body.sidebar-collapsed .card.fullscreen {
 }
 
 
+/* ─── Regex Sandbox ─────────────────────────────────────────────────────────── */
+
+.regex-highlight-box {
+    min-height: 250px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    transition: border-color var(--trans-fast);
+}
+
+.regex-match {
+    background: hsla(45, 93%, 47%, 0.35);
+    border-radius: 3px;
+    outline: 1px solid hsla(45, 93%, 47%, 0.55);
+}
+
+[data-theme="dark"] .regex-match {
+    background: hsla(45, 93%, 47%, 0.22);
+    outline-color: hsla(45, 93%, 47%, 0.4);
+}
+
+.regex-explain-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.regex-token-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    transition: border-color var(--trans-fast);
+}
+
+.regex-token-pill:hover {
+    border-color: var(--accent);
+}
+
+.regex-token-code {
+    font-family: var(--font-mono);
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.regex-token-desc {
+    color: var(--text-secondary);
+}
+
+.regex-flag-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color var(--trans-fast), background-color var(--trans-fast);
+}
+
+.regex-flag-label input[type="checkbox"] {
+    display: none;
+}
+
+.regex-flag-label .flag-key {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+}
+
+.regex-flag-label .flag-name {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.regex-flag-label:has(input:checked) {
+    border-color: var(--accent);
+    background-color: var(--accent-light);
+}
+
+.regex-flag-label:has(input:checked) .flag-key {
+    color: var(--accent);
+}
+
+.regex-cheatsheet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.regex-cheatsheet-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.regex-cheatsheet-title {
+    font-size: 0.73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.regex-cheat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+}
+
+.regex-cheat-code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: hsl(320, 80%, 55%);
+    white-space: nowrap;
+}
+
+[data-theme="dark"] .regex-cheat-code {
+    color: hsl(320, 85%, 68%);
+}
+
+.regex-cheat-desc {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+}
+
+details > summary.regex-cheatsheet-summary {
+    list-style: none;
+    outline: none;
+}
+
+details > summary.regex-cheatsheet-summary::-webkit-details-marker {
+    display: none;
+}
+
+details .regex-cheat-chevron {
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+details[open] .regex-cheat-chevron {
+    transform: rotate(90deg);
+}
+
+@media (max-width: 1024px) {
+    .regex-cheatsheet-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .regex-cheatsheet-grid {
+        grid-template-columns: 1fr;
+    }
+}
 
