@@ -152,6 +152,16 @@
                     </svg>
                     <span class="nav-label">Representation Converter</span>
                 </a>
+
+                <a class="nav-item" data-target="curl-generator" data-label="Curl Generator" title="Formulate single-line curl commands to easily copy, paste, and execute">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                        <line x1="6" y1="8" x2="10" y2="8"></line>
+                        <line x1="6" y1="12" x2="18" y2="12"></line>
+                        <line x1="6" y1="16" x2="14" y2="16"></line>
+                    </svg>
+                    <span class="nav-label">Curl Generator</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
@@ -293,6 +303,19 @@
                         </div>
                         <h3 class="dashboard-card-title">Representation Converter</h3>
                         <p class="dashboard-card-desc">Convert integers and text bytes between decimal, hexadecimal, octal, and binary representation formats in real time.</p>
+                    </div>
+
+                    <div class="card dashboard-card" data-target="curl-generator">
+                        <div class="dashboard-card-icon" style="background-color: hsla(190, 85%, 50%, 0.15); color: hsl(190, 85%, 50%);">
+                            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                                <line x1="6" y1="8" x2="10" y2="8"></line>
+                                <line x1="6" y1="12" x2="18" y2="12"></line>
+                                <line x1="6" y1="16" x2="14" y2="16"></line>
+                            </svg>
+                        </div>
+                        <h3 class="dashboard-card-title">Curl Generator</h3>
+                        <p class="dashboard-card-desc">Formulate single-line curl commands with headers, body payload, and query parameters to easily copy, paste, and execute.</p>
                     </div>
 
                 </div>
@@ -1417,6 +1440,132 @@
 
             </div><!-- /#representation-converter -->
 
+            <!-- PANEL: Curl Command Generator -->
+            <div class="tool-panel" id="curl-generator">
+                <!-- Grid for input & output -->
+                <div class="grid-2col">
+                    <!-- Left Column: Request Configuration -->
+                    <div class="flex-col">
+                        <!-- URL & Method Card -->
+                        <div class="card flex-col">
+                            <div class="card-title">Request URL</div>
+                            <div class="flex-row-center" style="gap: 12px; flex-wrap: wrap;">
+                                <select class="select-input" id="curl-method" style="font-weight: 700; font-family: var(--font-sans); width: 120px;">
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="DELETE">DELETE</option>
+                                    <option value="PATCH">PATCH</option>
+                                    <option value="OPTIONS">OPTIONS</option>
+                                    <option value="HEAD">HEAD</option>
+                                </select>
+                                <input type="text" class="input-text" id="curl-url" placeholder="https://api.example.com/v1/resource" style="flex: 1; min-width: 200px;">
+                            </div>
+                            
+                            <!-- Settings: Verbose, Insecure, Shell target -->
+                            <div class="flex-row-center" style="gap: 20px; margin-top: 10px; flex-wrap: wrap; width: 100%;">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="curl-opt-verbose">
+                                    <span>Verbose (-v)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="curl-opt-insecure">
+                                    <span>Insecure (-k)</span>
+                                </label>
+                                <div class="flex-row-center" style="gap: 8px; margin-left: auto;">
+                                    <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">Shell:</span>
+                                    <select class="select-input" id="curl-shell-format" style="padding: 6px 12px; font-size: 0.8rem;">
+                                        <option value="bash">POSIX (Bash/Zsh/Git Bash)</option>
+                                        <option value="cmd">Windows CMD</option>
+                                        <option value="powershell">Windows PowerShell (curl.exe)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tabs for Headers, Query Params, Body -->
+                        <div class="card flex-col">
+                            <div class="flex-row-center" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn btn-primary active" id="curl-tab-headers" style="padding: 8px 16px; font-size: 0.85rem;">Headers</button>
+                                <button class="btn btn-secondary" id="curl-tab-query" style="padding: 8px 16px; font-size: 0.85rem;">Query Params</button>
+                                <button class="btn btn-secondary" id="curl-tab-body" style="padding: 8px 16px; font-size: 0.85rem;">Body</button>
+                            </div>
+                            
+                            <!-- Headers Section -->
+                            <div id="curl-section-headers" class="curl-tab-content flex-col">
+                                <div class="flex-row-center" style="justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">Configure custom headers</span>
+                                    <button class="btn btn-primary" id="curl-add-header-btn" style="padding: 6px 12px; font-size: 0.75rem;">+ Add Header</button>
+                                </div>
+                                <div id="curl-headers-list" class="flex-col" style="gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
+                                    <!-- Headers rows will be dynamically generated -->
+                                </div>
+                            </div>
+                            
+                            <!-- Query Params Section -->
+                            <div id="curl-section-query" class="curl-tab-content flex-col" style="display: none;">
+                                <div class="flex-row-center" style="justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">URL query parameters</span>
+                                    <button class="btn btn-primary" id="curl-add-query-btn" style="padding: 6px 12px; font-size: 0.75rem;">+ Add Parameter</button>
+                                </div>
+                                <div id="curl-query-list" class="flex-col" style="gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
+                                    <!-- Query rows will be dynamically generated -->
+                                </div>
+                            </div>
+                            
+                            <!-- Body Section -->
+                            <div id="curl-section-body" class="curl-tab-content flex-col" style="display: none;">
+                                <div class="flex-row-center" style="gap: 12px; margin-bottom: 8px; flex-wrap: wrap;">
+                                    <span style="font-size: 0.8rem; color: var(--text-muted); margin-right: auto;">Request body payload</span>
+                                    <select class="select-input" id="curl-body-type" style="padding: 6px 12px; font-size: 0.8rem;">
+                                        <option value="none">None</option>
+                                        <option value="json">JSON (application/json)</option>
+                                        <option value="urlencoded">Form URL-Encoded</option>
+                                        <option value="multipart">Multipart Form Data</option>
+                                        <option value="text">Plain Text</option>
+                                    </select>
+                                    <button class="btn btn-secondary" id="curl-format-body-btn" style="padding: 6px 12px; font-size: 0.75rem; display: none;">Format JSON</button>
+                                </div>
+                                <div id="curl-body-container" style="display: none;">
+                                    <textarea class="textarea-field" id="curl-body-text" placeholder="Enter request body here..." style="min-height: 180px; font-size: 0.85rem; margin: 0;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column: Result Output -->
+                    <div class="flex-col">
+                        <div class="card flex-col" style="height: 100%; justify-content: space-between;">
+                            <div class="flex-col">
+                                <div class="card-title">
+                                    <span>Generated Command</span>
+                                    <div class="flex-row-center" style="gap: 8px;">
+                                        <button class="btn btn-danger" id="curl-clear-btn" style="padding: 6px 12px; font-size: 0.8rem;">Clear All</button>
+                                        <button class="btn btn-primary copy-trigger" id="curl-copy-btn" data-copy-target="#curl-command-output" style="padding: 6px 12px; font-size: 0.8rem;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                            Copy Command
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div style="position: relative;">
+                                    <textarea class="textarea-field readonly" id="curl-command-output" readonly style="min-height: 250px; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; background-color: var(--bg-input); border-color: var(--border-color); color: var(--accent); resize: none;" placeholder="Generated curl command will appear here..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.6; padding: 14px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; margin-top: 20px;">
+                                <div style="font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Quick Tips</div>
+                                <ul style="margin: 0; padding-left: 14px; display: flex; flex-direction: column; gap: 4px;">
+                                    <li>Parameters in lists can be enabled/disabled instantly without losing their values.</li>
+                                    <li>Pasting a URL with query parameters automatically parses them into the query list.</li>
+                                    <li>Selecting "JSON" body automatically manages the <code>Content-Type: application/json</code> header.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -1445,6 +1594,7 @@
     <script src="js/tools/regex.js"></script>
     <script src="js/tools/cron.js"></script>
     <script src="js/tools/representation.js"></script>
+    <script src="js/tools/curl.js"></script>
     <script src="app.js"></script>
     <script src="js/controllers/json.js"></script>
     <script src="js/controllers/codec.js"></script>
@@ -1457,5 +1607,6 @@
     <script src="js/controllers/regex.js"></script>
     <script src="js/controllers/cron.js"></script>
     <script src="js/controllers/representation.js"></script>
+    <script src="js/controllers/curl.js"></script>
 </body>
 </html>
