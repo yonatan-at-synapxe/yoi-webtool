@@ -9,6 +9,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const curlOptVerbose = document.getElementById('curl-opt-verbose');
     const curlOptInsecure = document.getElementById('curl-opt-insecure');
     const curlShellFormat = document.getElementById('curl-shell-format');
+    const curlOptProxy = document.getElementById('curl-opt-proxy');
+    const curlProxyAddr = document.getElementById('curl-proxy-addr');
+    
+    // Postman Elements
+    const curlPostmanDrop = document.getElementById('curl-postman-drop');
+    const curlPostmanFile = document.getElementById('curl-postman-file');
+    const curlPostmanLabel = document.getElementById('curl-postman-label');
+    const curlPostmanControls = document.getElementById('curl-postman-controls');
+    const curlPostmanInfo = document.getElementById('curl-postman-info');
+    const curlPostmanRequests = document.getElementById('curl-postman-requests');
+    const curlPostmanResetBtn = document.getElementById('curl-postman-reset-btn');
+    const curlPostmanVarsCard = document.getElementById('curl-postman-vars-card');
+    const curlPostmanVarsList = document.getElementById('curl-postman-vars-list');
+
+    let importedRequests = [];
+    let collectionVariables = [];
+    let activePostmanRequest = null;
     
     // Tabs
     const curlTabHeaders = document.getElementById('curl-tab-headers');
@@ -216,11 +233,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Real-time generator trigger
     function updateOutput() {
+        // Gather variables map
+        const variablesMap = {};
+        if (curlPostmanVarsCard && curlPostmanVarsCard.style.display !== 'none') {
+            curlPostmanVarsList.querySelectorAll('.curl-postman-var-val').forEach(input => {
+                const key = input.getAttribute('data-var-key');
+                const val = input.value;
+                variablesMap[key] = val;
+            });
+        }
+
         const headers = [];
         curlHeadersList.querySelectorAll('.curl-param-row').forEach(row => {
-            const key = row.querySelector('.curl-row-key').value.trim();
-            const value = row.querySelector('.curl-row-value').value;
+            let key = row.querySelector('.curl-row-key').value.trim();
+            let value = row.querySelector('.curl-row-value').value;
             const enabled = row.querySelector('.curl-row-enable').checked;
+            
+            // Resolve variables
+            key = Tools.resolveVariables(key, variablesMap);
+            value = Tools.resolveVariables(value, variablesMap);
+            
             if (key) {
                 headers.push({ key, value, enabled });
             }
@@ -228,16 +260,29 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const queryParams = [];
         curlQueryList.querySelectorAll('.curl-param-row').forEach(row => {
-            const key = row.querySelector('.curl-row-key').value.trim();
-            const value = row.querySelector('.curl-row-value').value;
+            let key = row.querySelector('.curl-row-key').value.trim();
+            let value = row.querySelector('.curl-row-value').value;
             const enabled = row.querySelector('.curl-row-enable').checked;
+            
+            // Resolve variables
+            key = Tools.resolveVariables(key, variablesMap);
+            value = Tools.resolveVariables(value, variablesMap);
+            
             if (key) {
                 queryParams.push({ key, value, enabled });
             }
         });
         
-        const urlVal = curlUrl.value.trim();
+        let urlVal = curlUrl.value.trim();
+        // Resolve variables in URL
+        urlVal = Tools.resolveVariables(urlVal, variablesMap);
+        
         const parsed = Tools.parseUrlQueryParams(urlVal);
+        
+        let bodyVal = curlBodyText.value;
+        if (curlBodyType.value !== 'none') {
+            bodyVal = Tools.resolveVariables(bodyVal, variablesMap);
+        }
         
         const options = {
             method: curlMethod.value,
@@ -247,8 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: headers,
             queryParams: queryParams,
             bodyType: curlBodyType.value,
-            body: curlBodyText.value,
-            shell: curlShellFormat.value
+            body: bodyVal,
+            shell: curlShellFormat.value,
+            useProxy: curlOptProxy.checked,
+            proxyAddr: curlProxyAddr.value
         };
         
         const command = Tools.generateCurl(options);
@@ -262,6 +309,9 @@ document.addEventListener('DOMContentLoaded', () => {
         curlOptVerbose.checked = false;
         curlOptInsecure.checked = false;
         curlShellFormat.value = 'bash';
+        curlOptProxy.checked = false;
+        curlProxyAddr.value = '';
+        curlProxyAddr.disabled = true;
         curlBodyType.value = 'none';
         curlBodyText.value = '';
         curlBodyContainer.style.display = 'none';
@@ -286,6 +336,11 @@ document.addEventListener('DOMContentLoaded', () => {
     curlOptVerbose.addEventListener('change', updateOutput);
     curlOptInsecure.addEventListener('change', updateOutput);
     curlShellFormat.addEventListener('change', updateOutput);
+    curlOptProxy.addEventListener('change', () => {
+        curlProxyAddr.disabled = !curlOptProxy.checked;
+        updateOutput();
+    });
+    curlProxyAddr.addEventListener('input', updateOutput);
     
     // Bind Tab Switching Listeners
     curlTabHeaders.addEventListener('click', () => switchTab('headers'));
@@ -348,11 +403,196 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Clear and reset workspaces
     curlClearBtn.addEventListener('click', () => {
+        resetPostmanFile();
         initWorkspace();
         if (window.App && window.App.showToast) {
             window.App.showToast('Curl workspace reset.');
         }
     });
+
+    // Postman File Upload & Drop Bindings
+    curlPostmanDrop.addEventListener('click', (e) => {
+        if (e.target.id === 'curl-postman-reset-btn' || e.target.closest('#curl-postman-controls')) {
+            return;
+        }
+        curlPostmanFile.click();
+    });
+
+    curlPostmanDrop.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        curlPostmanDrop.style.borderColor = 'var(--accent)';
+    });
+
+    curlPostmanDrop.addEventListener('dragleave', () => {
+        curlPostmanDrop.style.borderColor = 'var(--border-color)';
+    });
+
+    curlPostmanDrop.addEventListener('drop', (e) => {
+        e.preventDefault();
+        curlPostmanDrop.style.borderColor = 'var(--border-color)';
+        if (e.dataTransfer.files.length > 0) {
+            handlePostmanFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    curlPostmanFile.addEventListener('change', () => {
+        if (curlPostmanFile.files.length > 0) {
+            handlePostmanFile(curlPostmanFile.files[0]);
+        }
+    });
+
+    curlPostmanResetBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetPostmanFile();
+        initWorkspace();
+    });
+
+    // Request Selection Binding
+    curlPostmanRequests.addEventListener('change', () => {
+        const id = curlPostmanRequests.value;
+        if (!id) {
+            activePostmanRequest = null;
+            curlPostmanVarsCard.style.display = 'none';
+            curlPostmanVarsList.innerHTML = '';
+            updateOutput();
+            return;
+        }
+
+        const found = importedRequests.find(r => r.id === id);
+        if (found) {
+            const normalized = Tools.normalizePostmanRequest(found.request);
+            activePostmanRequest = normalized;
+            
+            curlMethod.value = normalized.method;
+            curlUrl.value = normalized.url;
+            
+            // Headers
+            curlHeadersList.innerHTML = '';
+            if (normalized.headers.length > 0) {
+                normalized.headers.forEach(h => {
+                    addHeaderRow(h.key, h.value, h.enabled);
+                });
+            } else {
+                addHeaderRow('', '', true);
+            }
+            
+            // Query Params
+            curlQueryList.innerHTML = '';
+            if (normalized.queryParams.length > 0) {
+                normalized.queryParams.forEach(q => {
+                    addQueryRow(q.key, q.value, q.enabled, true);
+                });
+            } else {
+                addQueryRow('', '', true, true);
+            }
+            
+            // Body
+            curlBodyType.value = normalized.bodyType;
+            curlBodyText.value = normalized.body;
+            curlBodyType.dispatchEvent(new Event('change'));
+            
+            // Variables
+            renderVariablesForRequest(normalized);
+            
+            updateOutput();
+        }
+    });
+
+    // Helper: Handle file loading
+    function handlePostmanFile(file) {
+        if (!file.name.endsWith('.json')) {
+            if (window.App && window.App.showToast) {
+                window.App.showToast('Please upload a JSON file', 'error');
+            }
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const parsedCollection = Tools.parsePostmanCollection(e.target.result);
+                
+                importedRequests = parsedCollection.requests;
+                collectionVariables = parsedCollection.variables;
+                
+                if (importedRequests.length === 0) {
+                    if (window.App && window.App.showToast) {
+                        window.App.showToast('No requests found in this collection', 'warning');
+                    }
+                    return;
+                }
+
+                curlPostmanInfo.textContent = `Loaded: ${parsedCollection.name} (${importedRequests.length} requests)`;
+                curlPostmanLabel.innerHTML = `<strong>Collection Loaded</strong><br>${file.name}`;
+                curlPostmanControls.style.display = 'flex';
+                
+                curlPostmanRequests.innerHTML = '<option value="">-- Choose request --</option>';
+                importedRequests.forEach(req => {
+                    const opt = document.createElement('option');
+                    opt.value = req.id;
+                    opt.textContent = `${req.request.method || 'GET'} - ${req.path}`;
+                    curlPostmanRequests.appendChild(opt);
+                });
+
+                if (window.App && window.App.showToast) {
+                    window.App.showToast(`Imported ${importedRequests.length} requests!`);
+                }
+            } catch (err) {
+                if (window.App && window.App.showToast) {
+                    window.App.showToast('Failed to parse collection: ' + err.message, 'error');
+                }
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Helper: Render variables list inputs
+    function renderVariablesForRequest(normalized) {
+        const requestVars = Tools.scanRequestForVariables(normalized);
+        
+        if (requestVars.length === 0) {
+            curlPostmanVarsCard.style.display = 'none';
+            curlPostmanVarsList.innerHTML = '';
+            return;
+        }
+
+        curlPostmanVarsCard.style.display = 'block';
+        curlPostmanVarsList.innerHTML = '';
+        
+        requestVars.forEach(vKey => {
+            const defaultVarObj = collectionVariables.find(cv => cv.key === vKey);
+            const defaultVal = defaultVarObj ? defaultVarObj.value : '';
+            
+            const row = document.createElement('div');
+            row.className = 'flex-row-center';
+            row.style.gap = '8px';
+            row.style.width = '100%';
+            
+            row.innerHTML = `
+                <span style="font-family: var(--font-mono); font-size: 0.8rem; flex: 1; color: var(--accent); font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${vKey}">
+                    {{${vKey}}}
+                </span>
+                <input type="text" class="input-text curl-postman-var-val" data-var-key="${vKey}" placeholder="value" value="${defaultVal}" style="flex: 2; font-family: var(--font-mono); font-size: 0.85rem; padding: 6px 12px;">
+            `;
+            
+            row.querySelector('.curl-postman-var-val').addEventListener('input', updateOutput);
+            curlPostmanVarsList.appendChild(row);
+        });
+    }
+
+    // Helper: Reset postman states
+    function resetPostmanFile() {
+        curlPostmanFile.value = '';
+        curlPostmanLabel.innerHTML = `<strong>Drag & Drop</strong> Postman collection file (.json) here or <strong>click to browse</strong>`;
+        curlPostmanControls.style.display = 'none';
+        curlPostmanRequests.innerHTML = '<option value="">-- Choose request --</option>';
+        curlPostmanVarsCard.style.display = 'none';
+        curlPostmanVarsList.innerHTML = '';
+        
+        importedRequests = [];
+        collectionVariables = [];
+        activePostmanRequest = null;
+    }
 
     // Initial setup
     initWorkspace();

@@ -141,7 +141,9 @@ Tools.generateCurl = function(options) {
         queryParams = [],
         bodyType = 'none',
         body = '',
-        shell = 'bash'
+        shell = 'bash',
+        useProxy = false,
+        proxyAddr = ''
     } = options;
     
     const parts = [];
@@ -161,6 +163,12 @@ Tools.generateCurl = function(options) {
     // 3. Skip SSL (insecure) flag
     if (insecure) {
         parts.push('-k');
+    }
+    
+    // 3.5 Proxy option
+    if (useProxy && proxyAddr && proxyAddr.trim() !== '') {
+        parts.push('-x');
+        parts.push(Tools.escapeShellArg(proxyAddr.trim(), shell));
     }
     
     // 4. Method
@@ -187,4 +195,199 @@ Tools.generateCurl = function(options) {
     }
     
     return parts.join(' ');
+};
+
+/**
+ * Parses a Postman collection JSON structure and returns its name, flattened requests, and collection variables.
+ * @param {string|Object} collectionJson 
+ * @returns {{name: string, requests: Array, variables: Array}}
+ */
+Tools.parsePostmanCollection = function(collectionJson) {
+    let collection;
+    try {
+        collection = typeof collectionJson === 'string' ? JSON.parse(collectionJson) : collectionJson;
+    } catch (e) {
+        throw new Error('Failed to parse collection JSON: ' + e.message);
+    }
+    
+    const requests = [];
+    
+    function traverse(itemArray, parentPath = '') {
+        if (!Array.isArray(itemArray)) return;
+        
+        itemArray.forEach(item => {
+            const currentPath = parentPath ? `${parentPath} / ${item.name}` : item.name;
+            
+            if (item.item && Array.isArray(item.item)) {
+                traverse(item.item, currentPath);
+            } else if (item.request) {
+                requests.push({
+                    id: Math.random().toString(36).substring(2, 9),
+                    name: item.name,
+                    path: currentPath,
+                    request: item.request
+                });
+            }
+        });
+    }
+    
+    if (collection.item) {
+        traverse(collection.item);
+    }
+    
+    const collectionVariables = [];
+    if (Array.isArray(collection.variable)) {
+        collection.variable.forEach(v => {
+            if (v.key) {
+                collectionVariables.push({
+                    key: v.key,
+                    value: v.value !== undefined ? String(v.value) : ''
+                });
+            }
+        });
+    }
+    
+    return {
+        name: (collection.info && collection.info.name) || 'Imported Collection',
+        requests,
+        variables: collectionVariables
+    };
+};
+
+/**
+ * Normalizes a Postman request structure into our tool's format.
+ * @param {Object} postmanReq 
+ * @returns {Object}
+ */
+Tools.normalizePostmanRequest = function(postmanReq) {
+    const method = postmanReq.method || 'GET';
+    
+    let url = '';
+    if (typeof postmanReq.url === 'string') {
+        url = postmanReq.url;
+    } else if (postmanReq.url && typeof postmanReq.url === 'object') {
+        url = postmanReq.url.raw || '';
+    }
+    
+    const headers = [];
+    if (Array.isArray(postmanReq.header)) {
+        postmanReq.header.forEach(h => {
+            if (h.key) {
+                headers.push({
+                    key: h.key,
+                    value: h.value || '',
+                    enabled: h.disabled !== true
+                });
+            }
+        });
+    }
+    
+    const queryParams = [];
+    if (postmanReq.url && Array.isArray(postmanReq.url.query)) {
+        postmanReq.url.query.forEach(q => {
+            if (q.key) {
+                queryParams.push({
+                    key: q.key,
+                    value: q.value || '',
+                    enabled: q.disabled !== true
+                });
+            }
+        });
+    }
+    
+    let bodyType = 'none';
+    let body = '';
+    
+    if (postmanReq.body) {
+        const mode = postmanReq.body.mode;
+        if (mode === 'raw') {
+            body = postmanReq.body.raw || '';
+            const isJson = (postmanReq.body.options && postmanReq.body.options.raw && postmanReq.body.options.raw.language === 'json') ||
+                           headers.some(h => h.key.toLowerCase() === 'content-type' && h.value.toLowerCase().includes('json'));
+            bodyType = isJson ? 'json' : 'text';
+        } else if (mode === 'urlencoded') {
+            bodyType = 'urlencoded';
+            if (Array.isArray(postmanReq.body.urlencoded)) {
+                body = postmanReq.body.urlencoded
+                    .filter(param => param.disabled !== true)
+                    .map(param => `${encodeURIComponent(param.key)}=${encodeURIComponent(param.value || '')}`)
+                    .join('&');
+            }
+        } else if (mode === 'formdata') {
+            bodyType = 'multipart';
+            if (Array.isArray(postmanReq.body.formdata)) {
+                body = postmanReq.body.formdata
+                    .filter(param => param.disabled !== true)
+                    .map(param => `${param.key}=${param.value || ''}`)
+                    .join('\n');
+            }
+        }
+    }
+    
+    return {
+        method,
+        url,
+        headers,
+        queryParams,
+        bodyType,
+        body
+    };
+};
+
+/**
+ * Finds all variable placeholders like {{variable_name}} inside a text.
+ * @param {string} text 
+ * @returns {Array<string>}
+ */
+Tools.findVariables = function(text) {
+    if (!text || typeof text !== 'string') return [];
+    const regex = /\{\{([a-zA-Z0-9_\-\.]+)\}\}/g;
+    const matches = [];
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+        if (!matches.includes(match[1])) {
+            matches.push(match[1]);
+        }
+    }
+    return matches;
+};
+
+/**
+ * Replaces all occurrences of {{variable}} in text with values from variablesMap.
+ * @param {string} text 
+ * @param {Object} variablesMap 
+ * @returns {string}
+ */
+Tools.resolveVariables = function(text, variablesMap) {
+    if (!text || typeof text !== 'string') return text;
+    return text.replace(/\{\{([a-zA-Z0-9_\-\.]+)\}\}/g, (match, key) => {
+        return variablesMap[key] !== undefined ? variablesMap[key] : match;
+    });
+};
+
+/**
+ * Scans a normalized request structure for variable placeholders.
+ * @param {Object} normalizedReq 
+ * @returns {Array<string>}
+ */
+Tools.scanRequestForVariables = function(normalizedReq) {
+    const vars = new Set();
+    
+    Tools.findVariables(normalizedReq.url).forEach(v => vars.add(v));
+    
+    normalizedReq.headers.forEach(h => {
+        Tools.findVariables(h.key).forEach(v => vars.add(v));
+        Tools.findVariables(h.value).forEach(v => vars.add(v));
+    });
+    
+    normalizedReq.queryParams.forEach(q => {
+        Tools.findVariables(q.key).forEach(v => vars.add(v));
+        Tools.findVariables(q.value).forEach(v => vars.add(v));
+    });
+    
+    if (normalizedReq.body) {
+        Tools.findVariables(normalizedReq.body).forEach(v => vars.add(v));
+    }
+    
+    return Array.from(vars);
 };

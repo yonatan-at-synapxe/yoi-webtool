@@ -1446,6 +1446,44 @@
                 <div class="grid-2col">
                     <!-- Left Column: Request Configuration -->
                     <div class="flex-col">
+                        <!-- Postman Collection Import Card -->
+                        <div class="card flex-col">
+                            <div class="card-title">Postman Import</div>
+                            
+                            <!-- File Drop / Upload Selector -->
+                            <div class="file-drag-zone" id="curl-postman-drop" style="padding: 16px; min-height: 80px; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--border-color); border-radius: 10px; cursor: pointer; transition: border-color var(--trans-fast);">
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;" id="curl-postman-label">
+                                    <strong>Drag & Drop</strong> Postman collection file (.json) here or <strong>click to browse</strong>
+                                </div>
+                                <input type="file" id="curl-postman-file" accept=".json" style="display: none;">
+                            </div>
+                            
+                            <!-- Selection and collection status -->
+                            <div id="curl-postman-controls" style="display: none; flex-direction: column; gap: 12px; border-top: 1px dashed var(--border-color); padding-top: 12px;">
+                                <div class="flex-row-center" style="justify-content: space-between;">
+                                    <span id="curl-postman-info" style="font-size: 0.75rem; color: var(--success); font-weight: 600;">Collection loaded</span>
+                                    <button class="btn btn-danger" id="curl-postman-reset-btn" style="padding: 4px 10px; font-size: 0.75rem;">Remove File</button>
+                                </div>
+                                <div class="flex-col" style="gap: 4px;">
+                                    <label class="input-label" for="curl-postman-requests">Select Request</label>
+                                    <select class="select-input" id="curl-postman-requests" style="font-size: 0.85rem; width: 100%;">
+                                        <option value="">-- Choose request --</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Postman Variables Card -->
+                        <div class="card flex-col" id="curl-postman-vars-card" style="display: none;">
+                            <div class="card-title" style="margin-bottom: 8px;">
+                                <span>Postman Variables</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; line-height: 1.4;">Specify variable values to replace <code>{{placeholder}}</code> tags in request fields.</div>
+                            <div id="curl-postman-vars-list" class="flex-col" style="gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 4px;">
+                                <!-- Variables key-value rows will be dynamically generated -->
+                            </div>
+                        </div>
+
                         <!-- URL & Method Card -->
                         <div class="card flex-col">
                             <div class="card-title">Request URL</div>
@@ -1480,6 +1518,15 @@
                                         <option value="powershell">Windows PowerShell (curl.exe)</option>
                                     </select>
                                 </div>
+                            </div>
+
+                            <!-- Proxy Configuration Row -->
+                            <div class="flex-row-center" style="gap: 12px; margin-top: 12px; flex-wrap: wrap; width: 100%; border-top: 1px dashed var(--border-color); padding-top: 12px;">
+                                <label class="checkbox-label" style="flex-shrink: 0;">
+                                    <input type="checkbox" class="checkbox-input" id="curl-opt-proxy">
+                                    <span>Use Proxy (-x)</span>
+                                </label>
+                                <input type="text" class="input-text" id="curl-proxy-addr" placeholder="e.g. http://127.0.0.1:8080" style="flex: 1; min-width: 180px; font-size: 0.85rem; padding: 6px 12px;" disabled>
                             </div>
                         </div>
                         
